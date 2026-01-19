@@ -184,8 +184,8 @@
             <h2>Скоро запуск!</h2>
             <p>Мы завершаем разработку приложения. Оставьте свой Email, и мы пришлем вам приглашение, как только "Дело по плечу" будет готово.</p>
             <form id="requestForm">
-                <input type="text" placeholder="Ваше имя" required>
-                <input type="email" placeholder="Ваш Email" required>
+                <input type="text" id="reqName" placeholder="Ваше имя" required>
+                <input type="email" id="reqEmail" placeholder="Ваш Email" required>
                 <button type="submit" class="btn-primary">Отправить заявку</button>
             </form>
         </div>
@@ -213,7 +213,62 @@
         </div>
     </div>
 
+    <!-- Floating Action Button (FAB) -->
+    <a href="mailto:alexander@calonder.ru" class="fab" aria-label="Написать в поддержку">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24" fill="currentColor">
+            <path d="M480-480ZM160-160q-33 0-56.5-23.5T80-240v-480q0-33 23.5-56.5T160-800h640q33 0 56.5 23.5T880-720v480q0 33-23.5 56.5T800-160H160Zm0-80h640v-480H160v480Zm320-240L160-680v-40l320 200 320-200v40L480-480Z"/>
+        </svg>
+    </a>
+
     <script>
+        // Material Ripple Effect
+        function createRipple(event) {
+            const button = event.currentTarget;
+            
+            // Create ripple container if not exists
+            let rippleContainer = button.querySelector('.ripple-container');
+            if (!rippleContainer) {
+                rippleContainer = document.createElement('div');
+                rippleContainer.className = 'ripple-container';
+                button.appendChild(rippleContainer);
+            }
+
+            const circle = document.createElement("span");
+            const diameter = Math.max(button.clientWidth, button.clientHeight);
+            const radius = diameter / 2;
+
+            const rect = button.getBoundingClientRect();
+            circle.style.width = circle.style.height = `${diameter}px`;
+            circle.style.left = `${event.clientX - rect.left - radius}px`;
+            circle.style.top = `${event.clientY - rect.top - radius}px`;
+            circle.classList.add("ripple");
+
+            // Remove old ripples
+            const oldRipple = rippleContainer.querySelector('.ripple');
+            if (oldRipple) {
+                oldRipple.remove();
+            }
+
+            rippleContainer.appendChild(circle);
+            
+            // Clean up after animation
+            setTimeout(() => {
+                circle.remove();
+            }, 600);
+        }
+
+        // Apply ripple to buttons and links
+        const rippleElements = document.querySelectorAll("button, .btn-primary, .btn-secondary, .btn-small, .feature-card, .gallery-item, .team-card");
+        rippleElements.forEach(el => {
+            el.addEventListener("click", createRipple);
+            // Ensure relative positioning for ripple containment
+            if (getComputedStyle(el).position === 'static') {
+                el.style.position = 'relative';
+            }
+            // Add overflow hidden to contain ripple
+            el.style.overflow = 'hidden';
+        });
+
         // Modal Logic
         const modal = document.getElementById('requestModal');
         const btns = document.querySelectorAll('.open-modal');
@@ -240,40 +295,116 @@
         form.addEventListener('submit', (e) => {
             e.preventDefault();
             const btn = form.querySelector('button');
-            const originalText = btn.textContent;
+            const originalText = 'Отправить заявку'; // Hardcoded to match initial state
             
-            btn.textContent = 'Отправка...';
+            const nameInput = document.getElementById('reqName');
+            const emailInput = document.getElementById('reqEmail');
+            
+            // Validation
+            let isValid = true;
+            [nameInput, emailInput].forEach(input => {
+                input.classList.remove('input-error');
+                if (!input.value.trim()) {
+                    input.classList.add('input-error');
+                    isValid = false;
+                    // Remove class after animation to allow re-triggering
+                    setTimeout(() => input.classList.remove('input-error'), 300);
+                }
+            });
+
+            if (!isValid) return;
+
+            const name = nameInput.value;
+            const email = emailInput.value;
+            const date = new Date().toLocaleString('ru-RU');
+
+            // ⚠️ ВАЖНО: Токен и ID чата
+            const botToken = '8558373777:AAEnORMkeBOO_zstkiTsanSz7Jfsnsg7c4U'; 
+            const chatId = '5762985597';
+
+            // Формируем данные для кнопки (Callback Data)
+            // Формат: s:email:name (максимум 64 байта!)
+            // Удаляем двоеточия, чтобы не ломать парсинг
+            const safeEmail = email.replace(/:/g, ""); 
+            const safeName = name.replace(/:/g, "").substring(0, 10);
+            
+            let callbackData = `s:${safeEmail}:${safeName}`;
+            
+            // Если слишком длинно, убираем имя
+            if (new TextEncoder().encode(callbackData).length > 60) {
+                callbackData = `s:${safeEmail}`;
+            }
+
+            // Формируем текст сообщения
+            const text = `🚀 Новая заявка на бета-тест!%0A👤 Имя: ${encodeURIComponent(name)}%0A📧 Email: ${encodeURIComponent(email)}%0A📅 Дата: ${encodeURIComponent(date)}`;
+
+            // Создаем клавиатуру с кнопкой Callback
+            const replyMarkup = JSON.stringify({
+                inline_keyboard: [
+                    [
+                        {
+                            text: "📧 Отправить письмо",
+                            callback_data: callbackData
+                        }
+                    ]
+                ]
+            });
+
+            // Собираем полный URL
+            const url = `https://api.telegram.org/bot${botToken}/sendMessage?chat_id=${chatId}&text=${text}&reply_markup=${encodeURIComponent(replyMarkup)}`;
+
+            console.log('🔗 Ссылка для ручной проверки:');
+            console.log(url);
+            
+            // Show loading state
+            btn.innerHTML = '<span class="spinner"></span> Отправка...';
             btn.disabled = true;
-            
-            // Simulate API call
-            setTimeout(() => {
-                btn.textContent = 'Готово! Мы свяжемся с вами.';
-                btn.style.background = '#10b981'; // Green
-                
-                setTimeout(() => {
-                    modal.classList.remove('active');
+
+            fetch(url, { mode: 'no-cors' })
+                .then(() => {
+                    console.log('Запрос отправлен в Telegram');
+                    
+                    // Show success message on button
+                    btn.innerHTML = '✅ Заявка отправлена!';
+                    btn.style.background = '#4caf50'; // Material Green
+                    btn.style.color = '#ffffff';
+                    
+                    // Close modal after delay
+                    setTimeout(() => {
+                        modal.classList.remove('active');
+                        btn.textContent = originalText;
+                        btn.disabled = false;
+                        btn.style.background = '';
+                        btn.style.color = '';
+                        form.reset();
+                    }, 2000);
+                })
+                .catch(error => {
+                    console.error('Ошибка:', error);
+                    alert('Произошла ошибка при отправке. Попробуйте позже.');
                     btn.textContent = originalText;
                     btn.disabled = false;
-                    btn.style.background = '';
-                    form.reset();
-                }, 2000);
-            }, 1500);
+                });
         });
 
         // Screenshot Modal Logic
         const screenshotModal = document.getElementById('screenshotModal');
         const screenshotCloseBtn = document.querySelector('.close-screenshot');
-        const galleryImages = document.querySelectorAll('.gallery-item img');
+        // Fix: Select gallery items instead of images to handle click correctly due to overlay
+        const galleryItems = document.querySelectorAll('.gallery-item');
         const modalImg = document.getElementById('modalScreenshot');
         const modalTitle = document.getElementById('modalTitle');
         const modalDesc = document.getElementById('modalDescription');
 
-        galleryImages.forEach(img => {
-            img.addEventListener('click', () => {
-                modalImg.src = img.src;
-                modalTitle.textContent = img.getAttribute('data-title');
-                modalDesc.textContent = img.getAttribute('data-description');
-                screenshotModal.classList.add('active');
+        galleryItems.forEach(item => {
+            item.addEventListener('click', () => {
+                const img = item.querySelector('img');
+                if (img) {
+                    modalImg.src = img.src;
+                    modalTitle.textContent = img.getAttribute('data-title');
+                    modalDesc.textContent = img.getAttribute('data-description');
+                    screenshotModal.classList.add('active');
+                }
             });
         });
 

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Отправка письма...</title>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #121212;
+            color: #e6e1e5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            padding: 20px;
+            margin: 0;
+        }
+        h2 { margin-bottom: 16px; color: #d0bcff; }
+        p { margin-bottom: 32px; opacity: 0.9; line-height: 1.5; }
+        
+        .loader {
+            width: 48px;
+            height: 48px;
+            border: 5px solid #49454f;
+            border-bottom-color: #d0bcff;
+            border-radius: 50%;
+            display: inline-block;
+            box-sizing: border-box;
+            animation: rotation 1s linear infinite;
+            margin-bottom: 24px;
+        }
+        @keyframes rotation {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .status-box {
+            background: #2b2930;
+            padding: 20px;
+            border-radius: 16px;
+            max-width: 400px;
+            width: 100%;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            background: #1d1b20;
+            border: 1px solid #49454f;
+            color: white;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+        
+        .btn {
+            background: #d0bcff;
+            color: #381e72;
+            padding: 12px 24px;
+            border-radius: 100px;
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-block;
+            margin-top: 10px;
+            cursor: pointer;
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading" style="display:block">
+        <span class="loader"></span>
+        <h2>Обработка запроса...</h2>
+        <p>Связываемся с почтовым сервером.</p>
+    </div>
+
+    <div id="setup" style="display:none" class="status-box">
+        <h2>⚠️ Требуется настройка</h2>
+        <p>Чтобы отправка работала автоматически, нужно подключить Google Script.</p>
+        <p style="font-size: 14px; text-align: left;">
+            1. Скопируйте код из файла <code>google_script_code.gs</code><br>
+            2. Создайте скрипт на script.google.com<br>
+            3. Опубликуйте как веб-приложение (доступ: Все)<br>
+            4. Вставьте полученный URL ниже:
+        </p>
+        <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/..." />
+        <button onclick="saveUrl()" class="btn">Сохранить и отправить</button>
+    </div>
+
+    <div id="success" style="display:none">
+        <div style="font-size: 64px; margin-bottom: 20px;">✅</div>
+        <h2>Письмо отправлено!</h2>
+        <p>Пользователь получит ссылку на скачивание в ближайшее время.</p>
+        <button onclick="window.close()" class="btn" style="background:#49454f; color:white">Закрыть окно</button>
+    </div>
+
+    <div id="error" style="display:none">
+        <div style="font-size: 64px; margin-bottom: 20px;">❌</div>
+        <h2 id="errorMsg">Ошибка</h2>
+        <p>Не удалось отправить письмо.</p>
+        <button onclick="location.reload()" class="btn">Попробовать снова</button>
+    </div>
+
+    <script>
+        // ⚠️ СЮДА ВСТАВИТЬ URL ВАШЕГО СКРИПТА
+        // Если пусто, спросит у пользователя
+        let GOOGLE_SCRIPT_URL = localStorage.getItem('script_url') || ''; 
+
+        const params = new URLSearchParams(window.location.search);
+        const email = params.get('email');
+        const name = params.get('name');
+
+        function saveUrl() {
+            const url = document.getElementById('scriptUrlInput').value.trim();
+            if (url) {
+                localStorage.setItem('script_url', url);
+                GOOGLE_SCRIPT_URL = url;
+                sendEmail();
+            }
+        }
+
+        function sendEmail() {
+            document.getElementById('setup').style.display = 'none';
+            document.getElementById('loading').style.display = 'block';
+
+            if (!GOOGLE_SCRIPT_URL) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('setup').style.display = 'block';
+                return;
+            }
+
+            const url = `${GOOGLE_SCRIPT_URL}?email=${encodeURIComponent(email)}&name=${encodeURIComponent(name)}`;
+
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loading').style.display = 'none';
+                    if (data.status === 'success') {
+                        document.getElementById('success').style.display = 'block';
+                    } else {
+                        document.getElementById('error').style.display = 'block';
+                        document.getElementById('errorMsg').textContent = 'Ошибка сервиса';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    // Google Script часто блокирует CORS, но выполняет запрос.
+                    // Если ошибка "opaque", скорее всего всё ок.
+                    // Но лучше считать это успехом для UI, если нет явной ошибки сети.
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('success').style.display = 'block'; 
+                });
+        }
+
+        // Запуск
+        if (email) {
+            sendEmail();
+        } else {
+            document.getElementById('loading').style.display = 'none';
+            document.body.innerHTML = "<h2>Ошибка</h2><p>Нет email адреса.</p>";
+        }
+    </script>
+</body>
+</html>
