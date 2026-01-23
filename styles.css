@@ -1,25 +1,30 @@
 :root {
-    /* Material 3 Dark Tokens */
-    --md-sys-color-background: #141218;
-    --md-sys-color-on-background: #E6E1E5;
-    --md-sys-color-surface: #1D1B20;
-    --md-sys-color-surface-container: #211F26;
-    --md-sys-color-surface-container-high: #2B2930;
-    --md-sys-color-on-surface: #E6E1E5;
-    --md-sys-color-on-surface-variant: #CAC4D0;
-    --md-sys-color-primary: #D0BCFF;
-    --md-sys-color-on-primary: #381E72;
-    --md-sys-color-primary-container: #4F378B;
-    --md-sys-color-on-primary-container: #EADDFF;
-    --md-sys-color-secondary: #CCC2DC;
-    --md-sys-color-on-secondary: #332D41;
-    --md-sys-color-secondary-container: #4A4458;
-    --md-sys-color-on-secondary-container: #E8DEF8;
-    --md-sys-color-outline: #938F99;
-    --md-sys-color-outline-variant: #49454F;
+    /* Updated Design Tokens based on desugn.txt */
+    --md-sys-color-background: #0E0C15;
+    --md-sys-color-on-background: #FFFFFF;
+    --md-sys-color-surface: #15131D; /* Slightly lighter than bg */
+    --md-sys-color-surface-container: #1A1A32; /* From design */
+    --md-sys-color-surface-container-high: #232340;
+    --md-sys-color-on-surface: #FFFFFF;
+    --md-sys-color-on-surface-variant: #B9AEDF; /* From design */
+    
+    /* Accents */
+    --md-sys-color-primary: #88E5BE; /* Mint from design */
+    --md-sys-color-on-primary: #0E0C15;
+    --md-sys-color-primary-container: #18A0FB; /* Blue from design */
+    --md-sys-color-on-primary-container: #FFFFFF;
+    
+    --md-sys-color-secondary: #DD734F; /* Orange from design */
+    --md-sys-color-on-secondary: #0E0C15;
+    --md-sys-color-secondary-container: #2A2A45;
+    --md-sys-color-on-secondary-container: #DD734F;
+    
+    --md-sys-color-outline: #4A4458;
+    --md-sys-color-outline-variant: #2A2A45;
     
     /* Font */
-    --font-family: 'Roboto', 'Inter', sans-serif;
+    --font-family: 'Inter', 'Roboto', sans-serif;
+    --font-mono: 'Source Code Pro', monospace;
     
     /* Spacing */
     --spacing-xs: 4px;
@@ -29,9 +34,9 @@
     --spacing-xl: 32px;
     
     /* Elevation */
-    --elevation-1: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 1px 3px 1px rgba(0, 0, 0, 0.15);
-    --elevation-2: 0px 1px 2px rgba(0, 0, 0, 0.3), 0px 2px 6px 2px rgba(0, 0, 0, 0.15);
-    --elevation-3: 0px 4px 8px 3px rgba(0, 0, 0, 0.15), 0px 1px 3px rgba(0, 0, 0, 0.3);
+    --elevation-1: 0px 4px 20px rgba(0, 0, 0, 0.5);
+    --elevation-2: 0px 8px 30px rgba(0, 0, 0, 0.6);
+    --elevation-3: 0px 12px 40px rgba(0, 0, 0, 0.7);
 }
 
 * {
@@ -48,9 +53,73 @@ body {
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
     scroll-behavior: smooth;
-    background-image: radial-gradient(at 0% 0%, rgba(208, 188, 255, 0.03) 0px, transparent 50%),
-                      radial-gradient(at 100% 100%, rgba(79, 55, 139, 0.05) 0px, transparent 50%);
-    background-attachment: fixed;
+    position: relative;
+}
+
+/* Background Design Elements */
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.05'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: -1;
+    opacity: 0.4;
+}
+
+/* Glow Effects */
+.glow-effect {
+    position: fixed;
+    width: 600px;
+    height: 600px;
+    border-radius: 50%;
+    filter: blur(100px);
+    z-index: -2;
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.glow-1 {
+    top: -100px;
+    left: -100px;
+    background: radial-gradient(circle, #18A0FB 0%, rgba(24, 160, 251, 0) 70%);
+}
+
+.glow-2 {
+    bottom: 0;
+    right: -100px;
+    background: radial-gradient(circle, #88E5BE 0%, rgba(136, 229, 190, 0) 70%);
+}
+
+.glow-3 {
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 800px;
+    height: 800px;
+    background: 
+        radial-gradient(circle at 10% 20%, rgba(24, 160, 251, 0.4) 0%, transparent 50%), /* Blue */
+        radial-gradient(circle at 90% 10%, rgba(242, 55, 31, 0.3) 0%, transparent 50%),  /* Red/Orange */
+        radial-gradient(circle at 80% 80%, rgba(238, 70, 211, 0.3) 0%, transparent 50%), /* Pink */
+        radial-gradient(circle at 20% 80%, rgba(0, 197, 223, 0.4) 0%, transparent 50%);  /* Cyan */
+    filter: blur(60px);
+    opacity: 0.6;
+    animation: float-centered 10s ease-in-out infinite alternate;
+}
+
+/* Design Elements from desugn.txt */
+.background-decorations {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: -1;
+    overflow: hidden;
 }
 
 /* Spinner */
@@ -108,14 +177,14 @@ body {
 
 /* Header */
 header {
-    padding: 12px 0;
+    padding: 16px 0;
     position: fixed;
     width: 100%;
     top: 0;
-    background: rgba(20, 18, 24, 0.95); /* Material Background with slight opacity */
-    backdrop-filter: blur(10px);
+    background: rgba(14, 12, 21, 0.7); /* More transparent */
+    backdrop-filter: blur(20px);
     z-index: 1000;
-    border-bottom: 1px solid var(--md-sys-color-outline-variant);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     transition: box-shadow 0.3s;
 }
 
@@ -171,56 +240,60 @@ nav a:hover {
     outline: none;
     cursor: pointer;
     font-family: var(--font-family);
-    font-weight: 500;
-    letter-spacing: 0.1px;
-    transition: all 0.2s ease;
-    border-radius: 20px; /* Full pill shape */
-    height: 40px;
-    padding: 0 24px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+    border-radius: 12px; /* Less rounded, more tech */
+    height: 48px;
+    padding: 0 32px;
     text-decoration: none;
     position: relative;
     overflow: hidden;
+    text-transform: uppercase;
+    font-size: 0.875rem;
 }
 
-/* Ripple effect handled via active state and color mix in modern CSS or just simple hover */
 .btn-small {
-    background: transparent;
-    color: var(--md-sys-color-primary);
-    border: 1px solid var(--md-sys-color-outline);
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--md-sys-color-on-background);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    height: 40px;
+    padding: 0 24px;
+    border-radius: 20px;
 }
 
 .btn-small:hover {
-    background: rgba(208, 188, 255, 0.08); /* Primary opacity 8% */
+    background: rgba(255, 255, 255, 0.1);
     border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
 }
 
 .btn-primary {
-    background: var(--md-sys-color-primary);
-    color: var(--md-sys-color-on-primary);
-    box-shadow: var(--elevation-1);
+    background: linear-gradient(135deg, var(--md-sys-color-primary-container) 0%, #1877F2 100%);
+    color: #FFFFFF;
+    box-shadow: 0 4px 15px rgba(24, 160, 251, 0.3);
 }
 
 .btn-primary:hover {
-    background: #E8DEF8; /* Slightly lighter on hover */
-    box-shadow: var(--elevation-2);
-    transform: translateY(-1px);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(24, 160, 251, 0.4);
+    filter: brightness(1.1);
 }
 
 .btn-primary:active {
-    box-shadow: var(--elevation-1);
     transform: translateY(0);
 }
 
 .btn-secondary {
     background: transparent;
-    color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-on-surface);
     border: 1px solid var(--md-sys-color-outline);
     margin-left: 10px;
 }
 
 .btn-secondary:hover {
-    background: rgba(208, 188, 255, 0.08);
     border-color: var(--md-sys-color-primary);
+    color: var(--md-sys-color-primary);
 }
 
 /* Hero Section */
@@ -772,9 +845,10 @@ footer .container {
     padding: 6px 16px;
     border-radius: 8px; /* Material small shape */
     font-size: 0.75rem; /* Label Medium */
-    font-weight: 500;
+    font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    font-family: var(--font-mono);
 }
 
 .badge.new {
@@ -979,20 +1053,20 @@ span.ripple {
     }
 }
 
-/* Floating Action Button */
+/* FAB */
 .fab {
     position: fixed;
-    bottom: 24px;
-    right: 24px;
-    width: 56px;
-    height: 56px;
-    border-radius: 16px; /* Material 3 FAB radius */
+    bottom: 32px;
+    right: 32px;
+    width: 64px;
+    height: 64px;
+    border-radius: 20px;
     background: var(--md-sys-color-primary-container);
-    color: var(--md-sys-color-on-primary-container);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    box-shadow: var(--elevation-3);
+    box-shadow: 0 10px 30px rgba(24, 160, 251, 0.4);
     border: none;
     outline: none;
     cursor: pointer;
@@ -1002,8 +1076,8 @@ span.ripple {
 }
 
 .fab:hover {
-    transform: translateY(-4px) scale(1.05);
-    box-shadow: 0px 8px 12px 6px rgba(0, 0, 0, 0.15), 0px 4px 4px rgba(0, 0, 0, 0.3);
+    transform: scale(1.1) rotate(5deg);
+    box-shadow: 0 15px 40px rgba(24, 160, 251, 0.6);
 }
 
 .fab svg {
